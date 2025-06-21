@@ -26,9 +26,9 @@ if user_id and plant_id:
         if initial_image_path:
             st.markdown("### 🌱 Initial Plantation Photo")
             if is_url(initial_image_path):
-                st.image(initial_image_path, caption="Initial Photo", use_container_width=True)
+                st.image(initial_image_path, caption="Initial Photo", width=600)
             elif os.path.exists(initial_image_path):
-                st.image(initial_image_path, caption="Initial Photo", use_container_width=True)
+                st.image(initial_image_path, caption="Initial Photo", width=600)
             else:
                 st.warning("⚠️ Initial image not found on the server.")
         else:
@@ -47,7 +47,7 @@ if user_id and plant_id:
                     f.write(initial_upload.read())
 
                 st.success("✅ Initial plantation image uploaded successfully!")
-                st.image(new_initial_path, caption="Uploaded Initial Photo", use_container_width=True)
+                st.image(new_initial_path, caption="Uploaded Initial Photo", width=600)
 
                 update_initial_image(user_id, plant_id, new_initial_path)
                 initial_image_path = new_initial_path
@@ -63,7 +63,7 @@ if user_id and plant_id:
             with open(new_img_path, "wb") as f:
                 f.write(uploaded_file.read())
 
-            st.image(new_img_path, caption="Latest Uploaded", use_container_width=True)
+            st.image(new_img_path, caption="Latest Uploaded", width=600)
 
             st.markdown("🔍 **Analyzing growth... Please wait...**")
             feedback = analyze_growth(initial_image_path, new_img_path)
@@ -76,10 +76,3 @@ if user_id and plant_id:
 
     else:
         st.error("❌ Plant not found for this User ID and Plant ID. Please check your input.")
-
-
-
-
-
-
-

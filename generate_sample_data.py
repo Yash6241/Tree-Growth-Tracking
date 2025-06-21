@@ -1,57 +1,70 @@
-import os
 import sqlite3
-from datetime import datetime
 
-# Paths
-UPLOAD_DIR = r"C:\Users\Yash Bhosale\OneDrive\Desktop\Tree Plant growth tracking\seed_data"
+DB_PATH = "database.db"
 
-DB_FILE = "database.db"
-
-# Sample records
-sample_data = [
-    {"user_id": "user_001", "plant_id": "plant_001", "image": "plant1.jpeg"},
-    {"user_id": "user_002", "plant_id": "plant_002", "image": "plant2.jpeg"},
-    {"user_id": "user_003", "plant_id": "plant_003", "image": "plant3.jpeg"},
-]
-
-# Create DB connection
-conn = sqlite3.connect(DB_FILE)
-cursor = conn.cursor()
-
-# ✅ Step 1: Create table with all required fields
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS plants (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id TEXT,
-        plant_id TEXT,
-        image_path TEXT,
-        growth_image_path TEXT,
-        feedback TEXT,
-        date TEXT
-    )
-""")
-
-# ✅ Step 2: Insert dummy records
-for record in sample_data:
-    src_path = os.path.join(UPLOAD_DIR, record["image"])
-    if not os.path.exists(src_path):
-        print(f"❌ Image not found: {record['image']}")
-        continue
-
+def init_db():
+    """Initialize DB and create plants table."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO plants (user_id, plant_id, image_path, growth_image_path, feedback, date)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (
-        record["user_id"],
-        record["plant_id"],
-        src_path,
-        None,
-        None,
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    ))
+        CREATE TABLE IF NOT EXISTS plants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            plant_id TEXT,
+            date TEXT,
+            image_path TEXT,            -- initial image URL or local path
+            growth_image_path TEXT,     -- latest growth image URL or local path
+            feedback TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
 
-conn.commit()
-conn.close()
-print("✅ Sample data inserted successfully.")
+def insert_plant(user_id, plant_id, date, image_path):
+    """Insert a new plant record."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO plants (user_id, plant_id, date, image_path)
+        VALUES (?, ?, ?, ?)
+    """, (user_id, plant_id, date, image_path))
+    conn.commit()
+    conn.close()
+
+def get_plant(user_id, plant_id):
+    """Get plant record by user and plant ID."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT * FROM plants WHERE user_id = ? AND plant_id = ?
+    """, (user_id, plant_id))
+    data = cursor.fetchone()
+    conn.close()
+    return data
+
+def update_growth_image(user_id, plant_id, growth_image_path, feedback):
+    """Update growth image path and feedback."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE plants
+        SET growth_image_path = ?, feedback = ?
+        WHERE user_id = ? AND plant_id = ?
+    """, (growth_image_path, feedback, user_id, plant_id))
+    conn.commit()
+    conn.close()
+
+def update_initial_image(user_id, plant_id, initial_image_path):
+    """Update initial image path."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE plants
+        SET image_path = ?
+        WHERE user_id = ? AND plant_id = ?
+    """, (initial_image_path, user_id, plant_id))
+    conn.commit()
+    conn.close()
+
 
 
